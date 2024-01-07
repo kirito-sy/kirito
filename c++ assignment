@@ -1,0 +1,69 @@
+#include <iostream>
+#include <fstream>
+using namespace std;
+
+const int register_count = 7;
+const int memory = 64;
+
+int8_t registers[REGISTER_COUNT] = {0};
+int8_t programCounter = 0;
+int8_t overflowFlag = 0;
+int8_t underflowFlag = 0;
+int8_t carryFlag = 0;
+int8_t zeroFlag = 0;
+int8_t memory[MEMORY_SIZE] = {0};
+
+void mathematicsOperation();
+
+
+void flag()
+{
+    overflowFlag = (result > 127);
+    underflowFlag = (result < -128);
+    carryFlag = (result < 0);
+    zeroFlag = (result == 0);
+}
+
+void mathematicsOperation()
+{
+    string codename;
+    if (codename == "IN" || "in")
+    {
+
+    }
+    else if (codename == "OUT" || codename == "out")
+    {
+
+    }
+    else if (codename == "MOV" || codename == "mov")
+    {
+
+    }
+    else if (codename == "ADD" || codename == "add")
+    {
+
+    }
+    else if (codename == "Multi" || codename == "multi")
+    {
+
+    }
+    else if (codename == "SUB" || codename == "SUB")
+    {
+
+    }
+    else if (codename == "DIV" || codename == "div")
+    {
+
+    }
+
+}
+
+void print()
+{
+
+}
+
+int main()
+{
+
+}

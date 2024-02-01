@@ -1,74 +1,444 @@
 #include <iostream>
 #include <fstream>
+#include <vector>
+
+/*
+of = overflow
+uf = underflow
+cf = carry flag
+zf = zero flag
+reg = register
+*/
+
 using namespace std;
 
-const int register_count = 7;
-const int memory = 64;
+const int REGISTER_COUNT = 7;
+const int MEMORY_SIZE = 64;
 
-int8_t registers[REGISTER_COUNT] = {0};
-int8_t programCounter = 0;
-int8_t overflowFlag = 0;
-int8_t underflowFlag = 0;
-int8_t carryFlag = 0;
-int8_t zeroFlag = 0;
-int8_t memory[MEMORY_SIZE] = {0};
-
-void mathematicsOperation();
-
-
-void flag()
+// Function to convert a substring of a string to integer
+int toInt(string R)
 {
-    overflowFlag = (result > 127);
-    underflowFlag = (result < -128);
-    carryFlag = (result < 0);
-    zeroFlag = (result == 0);
+    string temp;
+    temp = R[1];  // not array
+    return stoi(temp);
 }
 
-void mathematicsOperation()
+// Function that updates flags based on the given result
+void updateFlags(int result)
 {
-    string codename;
-    if (codename == "IN" || "in")
-    {
+    static int of = 0, uf = 0, cf = 0, zf = 0;
 
-    }
-    else if (codename == "OUT" || codename == "out")
-    {
+    of = (result > 255);
+    uf = (result < 0);
+    cf = (result > 225);
+    zf = (result == 0);
 
-    }
-    else if (codename == "MOV" || codename == "mov")
-    {
+    cout << "Flags: OF=" << of << " UF=" << uf << " CF=" << cf << " ZF=" << zf << endl;
 
-    }
-    else if (codename == "ADD" || codename == "add")
-    {
+}
 
-    }
-    else if (codename == "Multi" || codename == "multi")
-    {
 
-    }
-    else if (codename == "SUB" || codename == "SUB")
-    {
-
-    }
-    else if (codename == "DIV" || codename == "div")
-    {
-
-    }
-
-}gyguguygugy
-
-void print()
+// Function that will perform the IN operation
+void IN(int registers[], string input, int value)
 {
+    int reg = toInt(input);
+    if (reg >= 0 && reg < REGISTER_COUNT)
+    {
+        registers[reg] = value;
+        updateFlags(value);
+    }
+    else
+    {
+        cout << "Sorry invalid register number." << endl;
+    }
+}
 
+// Function that will perform the OUT operation
+void OUT(int registers[], int registerIndex)
+{
+    if (registerIndex >= 0 && registerIndex < REGISTER_COUNT)
+    {
+        cout << "Value in R" << registerIndex << ": " << registers[registerIndex] << endl;
+    }
+    else
+    {
+        cout << "Sorry invalid register number." << endl;
+    }
+}
+
+// Function that will perform the ADD operation
+void ADD(int registers[], string input, int value)
+{
+    int reg = toInt(input);
+    if (reg >= 0 && reg < REGISTER_COUNT)
+    {
+        int result = registers[reg] + value;
+        registers[reg] = result;
+        updateFlags(result);
+    }
+    else
+    {
+        cout << "Sorry invalid register number." << endl;
+    }
+}
+
+// Function that will perform the SUB operation
+void SUB(int registers[], string input, int value)
+{
+    int reg = toInt(input);
+    if (reg >= 0 && reg < REGISTER_COUNT)
+    {
+        int result = registers[reg] - value;
+        registers[reg] = result;
+        updateFlags(result);
+    }
+    else
+    {
+        cout << "Sorry invalid register number." << endl;
+    }
+}
+
+// Function that will perform the MULTI operation
+void MULT(int registers[], string input, int value)
+{
+    int reg = toInt(input);
+    if (reg >= 0 && reg < REGISTER_COUNT)
+    {
+        int result = registers[reg] * value;
+        registers[reg] = result;
+        updateFlags( result);
+    }
+    else
+    {
+        cout << "Sorry invalid register number." << endl;
+    }
+}
+
+// Function that will perform the DIV operation
+void DIV(int registers[], string input, int value)
+{
+    int reg = toInt(input);
+    if (reg >= 0 && reg < REGISTER_COUNT && value != 0)
+    {
+        int result = registers[reg] / value;
+        registers[reg] = result;
+        updateFlags(result);
+    }
+    else
+    {
+        cout << "Sorry invalid register number or division by zero." << endl;
+    }
+}
+
+// Function that will perform the INCREMENT
+void INC(int registers[], string input)
+{
+    int reg = toInt(input);
+    if (reg >= 0 && reg < REGISTER_COUNT) {
+        registers[reg]++;
+        updateFlags(registers[reg]);
+    }
+    else
+    {
+        cout << "Sorry invalid register number." << endl;
+    }
+}
+
+// Function that will perform the DECREMENT
+void DEC(int registers[], string input)
+{
+    int reg = toInt(input);
+    if (reg >= 0 && reg < REGISTER_COUNT)
+    {
+        registers[reg]--;
+        updateFlags(registers[reg]);
+    }
+    else
+    {
+        cout << "Sorry invalid register number." << endl;
+    }
+}
+
+// Function that get memory value from the referenceMemory
+int getMemory(string referenceMemory, int registers[]){
+    int targetIndex;
+    for(int i = 0 ; i < referenceMemory.size() ; i++){
+        if(referenceMemory[i] == ']')
+            targetIndex = i -1 ;
+    }
+
+    string RegisterIndex;
+    RegisterIndex = referenceMemory[targetIndex];
+    int Index = stoi(RegisterIndex);
+
+    return registers[Index];
+}
+
+void MOV(int registers[], int memory[], string input, string index)
+{
+    int value;
+    if (index[0] == '[')
+    {
+        value = getMemory(index, registers);
+    }
+    else
+    {
+        value = stoi(index) - 1;
+    }
+    int reg = toInt(input);
+    registers[reg] = memory[value];
+}
+
+// Function that STORE value in memory
+void STORE(int registers[], int memory[], int holdingMemory[], string input, string index)
+{
+    int value;
+    if (index[0] == '[')
+    {
+        value = getMemory(index, holdingMemory);
+    }
+    else
+    {
+        value = stoi(index) - 1;
+    }
+    int reg = toInt(input);
+    memory[value] = registers[reg];
+    holdingMemory[reg] = value;
+}
+
+// Function that LOAD value in memory
+void LOAD(int registers[], int memory[], string input, string index)
+{
+    int value;
+    if (index[0] == '[')
+    {
+        value = registers[toInt(index)];
+    }
+    else
+    {
+        value = stoi(index) - 1;
+    }
+    int reg = toInt(input);
+    registers[reg] = memory[value];
+}
+
+// Function to convert decimal to 8-bit binary
+string toBinary(int dec)
+{
+    int remainder;
+    string result;
+    vector<string> binary;
+
+    while (dec >= 2)
+    {
+        remainder = dec % 2;
+        dec = dec / 2;
+        binary.push_back(to_string(remainder));
+    }
+
+    binary.push_back(to_string(dec));
+
+    while (binary.size() < 8)
+        binary.push_back("0");
+
+    for (int i = binary.size(); i > 0; i--)
+        result += binary[i - 1];
+
+    return result;
+}
+
+//Function that perform ROL operation
+int ROL(int num)
+{
+    string binary = toBinary(num);
+    string result;
+
+    for (int i = 1; i < binary.size(); i++)
+    {
+        result += binary[i];
+    }
+
+    result += binary[0];
+
+    return stoi(result, 0, 2);
+}
+
+//Function that perform ROR operation
+int ROR(int num)
+{
+    string binary = toBinary(num);
+    string result;
+
+    result += binary[0];
+
+    for (int i = 0; i < binary.size() - 1; i++)
+    {
+        result += binary[i];
+    }
+
+    return stoi(result, 0, 2);
+}
+
+//Function that perform SHL operation
+int SHL(int num)
+{
+    string binary = toBinary(num);
+    string result;
+
+    for (int i = 1; i < binary.size(); i++)
+    {
+        result += binary[i];
+    }
+
+    result += '0';
+
+    return stoi(result, 0, 2);
+}
+
+//Function that perform SHR operation
+int SHR(int num)
+{
+    string binary = toBinary(num);
+    string result;
+
+    result += '0';
+
+    for (int i = 0; i < binary.size() - 1; i++)
+    {
+        result += binary[i];
+    }
+
+    return stoi(result, 0, 2);
+}
+
+// Function that print the registers and flags
+void printRegister(int registers[])
+{
+    cout << "Register: ";
+    for (int i = 0; i < REGISTER_COUNT; ++i)
+        cout << " R" << i << ":" << registers[i];
+    cout << endl ;
+}
+
+//Function that print the memory
+void printMemory(int memory[])
+{
+    cout << "Memory: " << endl;
+    for (int i = 0; i < MEMORY_SIZE; ++i)
+    {
+        cout << memory[i] << " ";
+        if ((i + 1) % 8 == 0)
+            cout << endl;
+    }
+    cout << endl;
+}
+
+//Function that print the counter
+void printCount(int counter)
+{
+    cout << "PC: " << counter << endl << endl;
 }
 
 int main()
 {
 
-}
-什么都没有嘤嘤嘤
-int main9hduqgfouihfwnf
-wkjvfiwjv'peqjfh
+    int registers[REGISTER_COUNT] = {0};
+    int memory[MEMORY_SIZE] = {0};
+    int holdingMemory[REGISTER_COUNT] = {0};
+    int counter = 0;
 
-jlsfbvv
+    ifstream file("Test.txt");
+
+    if (!file.is_open())
+    {
+        cout << "Error opening the file." << endl;
+        return 0;
+    }
+
+    string cmd, reg, index;
+    int value, num;
+
+    while (file >> cmd)
+    {
+        counter++;
+
+        if (cmd == "INC" || cmd == "DEC")
+        {
+            file >> reg;
+            if (cmd == "INC")
+                INC(registers, reg);
+            else
+                DEC(registers, reg);
+        }
+        else if (cmd == "IN" || cmd == "ADD" || cmd == "SUB" || cmd == "MULT" || cmd == "DIV")
+        {
+            file >> reg >> value;
+            if (cmd == "IN")
+                IN(registers, reg, value);
+
+            else if (cmd == "ADD")
+                ADD(registers, reg, value);
+
+            else if (cmd == "SUB")
+                SUB(registers, reg, value);
+
+            else if (cmd == "MULT")
+                MULT(registers, reg, value);
+
+            else if (cmd == "DIV")
+                DIV(registers, reg, value);
+
+        }
+
+        else if (cmd == "OUT")
+        {
+            file >> reg;
+            if (cmd == "OUT")
+                OUT(registers, toInt(reg));
+
+        }
+
+        else if (cmd == "ROL" || cmd == "ROR" || cmd == "SHL" || cmd == "SHR")
+        {
+            file >> reg >> num;
+            if (cmd == "ROL")
+                registers[toInt(reg)] = ROL(registers[toInt(reg)]);
+
+            else if (cmd == "ROR")
+                registers[toInt(reg)] = ROR(registers[toInt(reg)]);
+
+            else if (cmd == "SHL")
+                registers[toInt(reg)] = SHL(registers[toInt(reg)]);
+
+            else if (cmd == "SHR")
+                registers[toInt(reg)] = SHR(registers[toInt(reg)]);
+
+        }
+        else if (cmd == "MOV" || cmd == "STORE" || cmd == "LOAD")
+        {
+            file >> reg >> index;
+            if (cmd == "MOV")
+                MOV(registers, memory, reg, index);
+
+            else if (cmd == "STORE")
+                STORE(registers, memory,holdingMemory,reg, index);
+
+            else if (cmd == "LOAD")
+                LOAD(registers, memory, reg, index);
+
+        }
+        else
+        {
+            cout << "Unknown command: " << cmd << endl;
+        }
+
+        printRegister(registers);
+        printCount(counter);
+        printMemory(memory);
+
+    }
+
+
+    file.close();
+    return 0;
+}
